@@ -357,7 +357,7 @@
   // ★ GASデプロイURL（変更してください）
   // =====================================================
   const GAS_URL = "https://script.google.com/macros/s/AKfycbxv6lJz_sWzJsSE-VBxxP3aZzzHv7Nmy9_JIRNsXILUdFtprBiD5ZEAcHHaWghMa9D9/exec";
-  
+
   const MAX_PHOTOS  = 99;
   const MAX_DISHES  = 5;
   let   dishCount   = 0;
@@ -606,11 +606,13 @@
     try {
       progBar.style.width = "40%";
 
+      // GASへの送信：URLパラメータ経由でJSONを渡す
+      const encodedPayload = encodeURIComponent(JSON.stringify(payload));
       const res = await fetch(GAS_URL, {
         method:  "POST",
         mode:    "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body:    JSON.stringify(payload)
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body:    "data=" + encodedPayload
       });
 
       progBar.style.width = "80%";
