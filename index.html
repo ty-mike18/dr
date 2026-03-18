@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>食事記録</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary:   #2e7d52;
+      --primary-lt:#e8f5ee;
+      --accent:    #1a6fa8;
+      --bg:        #f4f7f4;
+      --card:      #ffffff;
+      --text:      #1a1f2e;
+      --muted:     #6b7a8d;
+      --border:    #d8e8d8;
+      --danger:    #c62828;
+      --radius:    16px;
+      --shadow:    0 4px 16px rgba(0,0,0,0.07);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 60px;
+    }
+
+    /* ── ヘッダー ── */
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 24px 20px 18px;
+      text-align: center;
+    }
+    .header h1 { font-size: 1.1rem; font-weight: 700; }
+    .header p  { font-size: 0.8rem; opacity: 0.85; margin-top: 5px; line-height: 1.6; }
+
+    /* ── カード共通 ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      margin: 14px 14px 0;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-lt);
+    }
+
+    /* ── フォーム部品 ── */
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 4px;
+      margin-top: 12px;
+    }
+    label:first-of-type { margin-top: 0; }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: #fff;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* 単位付き入力 */
+    .input-unit {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .input-unit input { flex: 1; }
+    .unit-label {
+      font-size: 0.9rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* ── 料理ブロック ── */
+    .dish-block {
+      background: var(--primary-lt);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 12px;
+      position: relative;
+    }
+    .dish-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .dish-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .btn-remove-dish {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+
+    /* 食品行 */
+    .food-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 48px 36px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .food-row input { margin: 0; }
+    .btn-remove-food {
+      background: none;
+      border: none;
+      color: var(--danger);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .food-header {
+      display: grid;
+      grid-template-columns: 1fr 80px 48px 36px;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+    .food-header span {
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    /* ── 写真エリア ── */
+    .photo-area {
+      margin-top: 12px;
+    }
+    .photo-preview-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .photo-thumb {
+      position: relative;
+      width: 80px;
+      height: 80px;
+    }
+    .photo-thumb img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+    }
+    .photo-thumb .btn-remove-photo {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: var(--danger);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-add-photo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      border: 2px dashed var(--primary);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--primary);
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
+    .photo-count-note {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    input[type="file"] { display: none; }
+
+    /* ── ボタン系 ── */
+    .btn-add {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 8px;
+      width: 100%;
+      justify-content: center;
+    }
+    .btn-add-dish {
+      background: none;
+      border: 1.5px solid var(--primary);
+      color: var(--primary);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin: 14px 14px 0;
+      width: calc(100% - 28px);
+    }
+    #save-btn {
+      display: block;
+      width: calc(100% - 28px);
+      margin: 20px 14px 0;
+      padding: 16px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1.05rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 14px rgba(46,125,82,0.3);
+      transition: background 0.2s, transform 0.1s;
+    }
+    #save-btn:active   { transform: scale(0.97); }
+    #save-btn:disabled { background: #aaa; box-shadow: none; cursor: not-allowed; }
+
+    /* ── ステータス ── */
+    #status {
+      text-align: center;
+      margin: 16px 14px 0;
+      font-size: 0.9rem;
+      font-weight: 700;
+      min-height: 1.5em;
+      line-height: 1.6;
+    }
+    .st-ok   { color: var(--primary); }
+    .st-err  { color: var(--danger); }
+    .st-wait { color: var(--muted); }
+
+    /* プログレスバー */
+    #progress-wrap {
+      display: none;
+      margin: 10px 14px 0;
+      background: var(--border);
+      border-radius: 10px;
+      height: 8px;
+      overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 10px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 32px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>食事記録</h1>
+  <p>料理・食品・写真を入力して「記録を保存する」を押してください</p>
+</div>
+
+<!-- 基本情報 -->
+<div class="card">
+  <div class="card-title">基本情報</div>
+
+  <label for="participant-id">参加者ID</label>
+  <input type="text" id="participant-id" placeholder="例: P001" autocomplete="off">
+
+  <label for="meal-date">日付</label>
+  <input type="date" id="meal-date">
+
+  <label for="meal-type">食事区分</label>
+  <select id="meal-type">
+    <option value="">選択してください</option>
+    <option value="朝食">朝食</option>
+    <option value="昼食">昼食</option>
+    <option value="夕食">夕食</option>
+    <option value="間食">間食</option>
+  </select>
+
+  <label for="meal-time">食事時刻</label>
+  <input type="time" id="meal-time">
+</div>
+
+<!-- 料理ブロックコンテナ -->
+<div id="dishes-container"></div>
+
+<!-- 料理追加ボタン -->
+<button class="btn-add-dish" id="btn-add-dish">＋ 料理を追加する</button>
+
+<!-- 保存ボタン -->
+<button id="save-btn">記録を保存する</button>
+<div id="progress-wrap"><div id="progress-bar"></div></div>
+<p id="status"></p>
+<footer>本フォームは研究目的で使用されます</footer>
+
+<script>
+  // =====================================================
+  // ★ GASデプロイURL（変更してください）
+  // =====================================================
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwyYBWkq6o9mvMJKCPx7VH8YD9I7MAz7IYZQj7oXSheb6KyPU33cW-Zw2VN-jXWKThwtg/exec";
+
+  const MAX_PHOTOS  = 99;
+  const MAX_DISHES  = 5;
+  let   dishCount   = 0;
+
+  // 写真データ管理: { dishIdx: [{ file, dataUrl }, ...] }
+  const photoMap = {};
+
+  // ── 今日の日付をデフォルト設定 ──
+  const today = new Date();
+  document.getElementById("meal-date").value =
+    `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+
+  // ── 料理ブロック生成 ──
+  function addDish() {
+    const container = document.getElementById("dishes-container");
+    if (dishCount >= MAX_DISHES) {
+      alert("料理は最大" + MAX_DISHES + "品まで追加できます");
+      return;
+    }
+    dishCount++;
+    const idx = dishCount;
+    photoMap[idx] = [];
+
+    const block = document.createElement("div");
+    block.className = "card dish-block";
+    block.dataset.dishIdx = idx;
+    block.innerHTML = `
+      <div class="dish-header">
+        <span class="dish-title">料理 ${idx}</span>
+        <button class="btn-remove-dish" onclick="removeDish(this)" title="この料理を削除">✕</button>
+      </div>
+
+      <label>料理名</label>
+      <input type="text" class="dish-name" placeholder="例: 味噌汁、チャーハン">
+
+      <label style="margin-top:12px">食品・食材</label>
+      <div class="food-header">
+        <span>食品名</span><span>量</span><span>単位</span><span></span>
+      </div>
+      <div class="food-rows"></div>
+      <button class="btn-add" onclick="addFoodRow(this)">＋ 食品を追加</button>
+
+      <div class="photo-area">
+        <label style="margin-top:12px">料理写真</label>
+        <div class="photo-preview-wrap" data-dish-idx="${idx}">
+          <label class="btn-add-photo" title="写真を追加">
+            ＋
+            <input type="file" accept="image/*" multiple onchange="handlePhoto(event, ${idx})">
+          </label>
+        </div>
+        <p class="photo-count-note" id="photo-note-${idx}">0 枚</p>
+      </div>
+    `;
+    container.appendChild(block);
+
+    // 最初の食品行を3行追加
+    const addBtn = block.querySelector(".btn-add");
+    addFoodRow(addBtn);
+    addFoodRow(addBtn);
+    addFoodRow(addBtn);
+  }
+
+  // ── 料理ブロック削除 ──
+  function removeDish(btn) {
+    const block = btn.closest(".dish-block");
+    const idx   = parseInt(block.dataset.dishIdx);
+    delete photoMap[idx];
+    block.remove();
+  }
+
+  // ── 食品行追加 ──
+  function addFoodRow(btn) {
+    const foodRows = btn.previousElementSibling;
+    const row = document.createElement("div");
+    row.className = "food-row";
+    row.innerHTML = `
+      <input type="text"   class="food-name"   placeholder="食品名">
+      <input type="number" class="food-amount" placeholder="量" min="0" step="0.1">
+      <select class="food-unit">
+        <option value="g">g</option>
+        <option value="ml">ml</option>
+        <option value="個">個</option>
+        <option value="枚">枚</option>
+        <option value="杯">杯</option>
+        <option value="本">本</option>
+      </select>
+      <button class="btn-remove-food" onclick="this.closest('.food-row').remove()" title="削除">✕</button>
+    `;
+    foodRows.appendChild(row);
+  }
+
+  // ── 写真選択 ──
+  function handlePhoto(event, dishIdx) {
+    const files = Array.from(event.target.files);
+    const current = photoMap[dishIdx];
+
+    files.forEach(file => {
+      if (current.length >= MAX_PHOTOS) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        current.push({ file, dataUrl: e.target.result });
+        renderPhotos(dishIdx);
+      };
+      reader.readAsDataURL(file);
+    });
+    event.target.value = ""; // 同じファイルを再選択できるようリセット
+  }
+
+  // ── 写真プレビュー描画 ──
+  function renderPhotos(dishIdx) {
+    const wrap  = document.querySelector(`.photo-preview-wrap[data-dish-idx="${dishIdx}"]`);
+    const note  = document.getElementById(`photo-note-${dishIdx}`);
+    const photos = photoMap[dishIdx];
+
+    // サムネイルを再描画（追加ボタンは残す）
+    const addBtn = wrap.querySelector("label.btn-add-photo");
+    // 既存サムネイルを削除
+    wrap.querySelectorAll(".photo-thumb").forEach(el => el.remove());
+
+    photos.forEach((p, i) => {
+      const thumb = document.createElement("div");
+      thumb.className = "photo-thumb";
+      thumb.innerHTML = `
+        <img src="${p.dataUrl}" alt="料理写真${i+1}">
+        <button class="btn-remove-photo" onclick="removePhoto(${dishIdx}, ${i})">✕</button>
+      `;
+      wrap.insertBefore(thumb, addBtn);
+    });
+
+    // 追加ボタンは常に表示
+    addBtn.style.display = "flex";
+    note.textContent = `${photos.length} 枚`;
+  }
+
+  // ── 写真削除 ──
+  function removePhoto(dishIdx, photoIdx) {
+    photoMap[dishIdx].splice(photoIdx, 1);
+    renderPhotos(dishIdx);
+  }
+
+  // ── タイムスタンプ ──
+  function getTimestamp() {
+    const d = new Date();
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+  }
+
+  // ── Base64から純粋なデータ部分を取り出す ──
+  function extractBase64(dataUrl) {
+    return dataUrl.split(",")[1];
+  }
+
+  // ── 保存処理 ──
+  document.getElementById("save-btn").addEventListener("click", async () => {
+    const statusEl = document.getElementById("status");
+    const btn      = document.getElementById("save-btn");
+    const progWrap = document.getElementById("progress-wrap");
+    const progBar  = document.getElementById("progress-bar");
+
+    // ── バリデーション ──
+    const participantId = document.getElementById("participant-id").value.trim();
+    const mealDate      = document.getElementById("meal-date").value;
+    const mealType      = document.getElementById("meal-type").value;
+    const mealTime      = document.getElementById("meal-time").value;
+
+    if (!participantId) {
+      statusEl.textContent = "⚠ 参加者IDを入力してください";
+      statusEl.className = "st-err";
+      return;
+    }
+    if (!mealDate || !mealType || !mealTime) {
+      statusEl.textContent = "⚠ 日付・食事区分・食事時刻をすべて入力してください";
+      statusEl.className = "st-err";
+      return;
+    }
+
+    // ── 料理データ収集 ──
+    const dishBlocks = document.querySelectorAll(".dish-block");
+    if (dishBlocks.length === 0) {
+      statusEl.textContent = "⚠ 料理を1品以上追加してください";
+      statusEl.className = "st-err";
+      return;
+    }
+
+    const dishes = [];
+    for (const block of dishBlocks) {
+      const dishIdx  = parseInt(block.dataset.dishIdx);
+      const dishName = block.querySelector(".dish-name").value.trim();
+      const foods    = [];
+
+      block.querySelectorAll(".food-row").forEach(row => {
+        const name   = row.querySelector(".food-name").value.trim();
+        const amount = row.querySelector(".food-amount").value;
+        const unit   = row.querySelector(".food-unit").value;
+        if (name) foods.push({ name, amount, unit });
+      });
+
+      const photos = photoMap[dishIdx].map(p => ({
+        base64:   extractBase64(p.dataUrl),
+        mimeType: p.file.type,
+        fileName: p.file.name
+      }));
+
+      dishes.push({ dishIdx, dishName, foods, photos });
+    }
+
+    // ── 送信 ──
+    btn.disabled = true;
+    progWrap.style.display = "block";
+    progBar.style.width = "10%";
+    statusEl.textContent = "送信中… しばらくお待ちください";
+    statusEl.className = "st-wait";
+
+    const payload = {
+      participantId,
+      timestamp: getTimestamp(),
+      mealDate,
+      mealType,
+      mealTime,
+      dishes
+    };
+
+    try {
+      progBar.style.width = "40%";
+
+      const res = await fetch(GAS_URL, {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify(payload)
+      });
+
+      progBar.style.width = "80%";
+      const json = await res.json();
+      progBar.style.width = "100%";
+
+      if (json.status === "ok") {
+        statusEl.innerHTML = "✅ 記録が完了しました。ありがとうございました。";
+        statusEl.className = "st-ok";
+        // フォームリセット
+        document.getElementById("participant-id").value = "";
+        document.getElementById("meal-type").value = "";
+        document.getElementById("meal-time").value = "";
+        document.getElementById("dishes-container").innerHTML = "";
+        Object.keys(photoMap).forEach(k => delete photoMap[k]);
+        dishCount = 0;
+      } else {
+        throw new Error(json.message || "不明なエラー");
+      }
+    } catch (err) {
+      progBar.style.width = "0%";
+      statusEl.textContent = "❌ 通信エラーです。電波状況を確認して再度お試しください。";
+      statusEl.className = "st-err";
+    } finally {
+      btn.disabled = false;
+      setTimeout(() => { progWrap.style.display = "none"; }, 1500);
+    }
+  });
+
+  // ── 初期表示：料理ブロックを1つ追加 ──
+  document.getElementById("btn-add-dish").addEventListener("click", addDish);
+  addDish();
+</script>
+</body>
+</html>
